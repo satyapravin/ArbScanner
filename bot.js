@@ -67,16 +67,18 @@ const SUSHI = 'SUSHI'
 // ASSET ADDRESSES
 const ASSET_ADDRESSES = {
 	USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' ,//6 decimals
+	MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
 	WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 	WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-	YFI: '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e',
+	DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
 }
 
 const ASSET_DECIMALS = {
 	USDC:6, 
+	MKR: 18,
 	WETH: 18,
 	WBTC: 8,
-	YFI: 18,
+	DAI: 18,
 };
 
 // TRADING FUNCTIONS
@@ -198,7 +200,7 @@ async function checkMarkets() {
 				let jj = ii
 				let reversePath = []
 				
-				while(!reversePath.includes(kk)) {
+				while(!reversePath.includes(kk) || reversePath.length === 0) {
 					reversePath.push(kk);
 					jj = path[kk][ii]
 					rate = rate.multipliedBy(Math.exp(-G[jj][kk]))
@@ -222,6 +224,6 @@ async function checkMarkets() {
 }
 
 // Check markets every n seconds
-let totalCapital = 5000
+let totalCapital = 1000
 const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 5000 // 10 seconds
 const marketChecker = setInterval(async () => { await checkMarkets() }, POLLING_INTERVAL)
