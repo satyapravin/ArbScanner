@@ -1,4 +1,4 @@
-# triarb
+# DeFi arbitrage scanner
 Triangular arbitrage on DeFi
 
 1. clone repository
