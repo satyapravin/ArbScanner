@@ -11,9 +11,10 @@ const bellmanFord = function(G, S) {
 	}
 		
 	
-
+	let negs = []
 	for (var kk=0; kk < V; ++kk)
 	{
+	  if (!S.includes(kk)) continue;
 	  for(var ii=0; ii < V; ++ii)
 	  {
 		for(var jj=0; jj < V; ++jj)
@@ -25,14 +26,10 @@ const bellmanFord = function(G, S) {
 			}
 		}
 	  }
+
+	  if (dist[kk][kk] < -0.001) negs.push(kk)
 	}
 	
-	let negs = []
-	for(var ii=0; ii < V; ++ii) {
-		if (dist[ii][ii] < -0.001) {
-			negs.push(ii)
-		}
-	}
   return [negs, paths];
 }
 

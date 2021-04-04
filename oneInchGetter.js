@@ -1,7 +1,7 @@
 const contracts = require('./assets.js')
 const axios = require('axios')
 
-class OneInch {
+class OneInchGetter {
     constructor() {
         this.assets = new contracts.Assets()
     
@@ -27,10 +27,10 @@ class OneInch {
         }
 
         this.getExpectedReturnWithGas = async function(fromToken, toToken, amount) {
+            let fromAddress = this.assets.getContractAddress(fromToken)
+            let toAddress = this.assets.getContractAddress(toToken);
+                
             return new Promise(function(resolve, reject) {
-                let fromAddress = this.assets.getContractAddress(fromToken)
-                let toAddress = this.assets.getContractAddress(toToken);
-
                 try {
                     axios.get('https://api.1inch.exchange/v3.0/1/quote', {
                         params: {
@@ -48,4 +48,4 @@ class OneInch {
     }
 }
 
-module.exports = {OneInch}
+module.exports = {OneInchGetter}

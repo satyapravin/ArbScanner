@@ -1,6 +1,6 @@
 const bellman = require('./bellman.js')
 const bigNumber = require('./bigNumber.js')
-const oneInch = require('./oneInch.js')
+const oneInch = require('./oneInchGetter.js')
 const utils = require('./utils.js')
 const contracts = require('./assets.js')
 
@@ -12,10 +12,10 @@ class Scanner {
         this.V = utils.array2D(this.keys.length, 0)
         this.capital = totalCapital
         this.base10 = new bigNumber.BigNumber(10)
-        this.aggregator = new oneInch.OneInch()
+        this.aggregator = new oneInch.OneInchGetter()
     }
 
-    async findArbitrage(resultPath) {
+    async findArbitrage(resultPath, amounts, loanCurrencies) {
         console.log(`Fetching market data @ ${utils.now()} ...\n`)
         let G = utils.array2D(this.keys.length, 0);
         this.V[0][0] = this.capital
@@ -29,6 +29,7 @@ class Scanner {
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
                                          this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed()
                     if(i !== 0) if(this.V[0][i] > 0) amount = bigNumber.BigNumber(this.V[0][i]).toFixed()
+                    if (!amounts.hasOwnProperty(from)) amounts[from] = amount;
                     let p = this.aggregator.getExpectedReturnWithoutGas(from, to, amount)
                     promises.push(p);
                 } else {
@@ -65,7 +66,12 @@ class Scanner {
         
         if (this.calibration) { this.calibration = false; console.log("Model calibrating....."); return false }
         
-        let result = bellman.bellmanFord(G, 0)
+        let currIdx = []
+        for(var curr in loanCurrencies) {
+            currIdx.push(this.keys.indexOf(loanCurrencies[curr]))
+        }
+        console.log(currIdx)
+        let result = bellman.bellmanFord(G, currIdx)
         
         let negs = result[0]
 

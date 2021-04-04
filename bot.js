@@ -1,40 +1,15 @@
 require('dotenv').config()
 require('console.table')
-const path = require('path')
 const scanner = require('./scanner.js')
+const swapper = require('./oneInchSwapper.js')
 
-
-async function getRate(one, two, amount, i, j) {
-	
-	return new Promise(function(resolve, reject) {
-		// Fetch 1inch.exchange Data
-		const oneInchExchangeData = fetchOneInchExchangeData({
-			fromToken: one,
-			toToken: two,
-			amount: amount
-		}).then(function(oneInchExchangeData) {
-
-		if (oneInchExchangeData) {
-			resolve([oneInchExchangeData.toTokenAmount, i, j, amount]);
-		} 
-		else {
-			resolve([Infinity, i, j, amount]);
-	}});
-});
-}
-
-
-let profitableArbFound = false
 let checkingMarkets = false
 let finder = new scanner.Scanner(5000)
+let loanCurrencies = ['DAI', 'WETH', 'USDC']
 
 async function checkMarkets() {
 	if(checkingMarkets) {
 		return
-	}
-
-	if(profitableArbFound) {
-		clearInterval(marketChecker)
 	}
 
 	checkingMarkets = true
@@ -42,16 +17,29 @@ async function checkMarkets() {
 	try 
 	{
 		let results = {}
-		let found = await finder.findArbitrage(results);
+		let amounts = {}
+		let found = await finder.findArbitrage(results, amounts, loanCurrencies);
 		if (found) {
-			let maxProfit = Object.keys(results).reduce((a, b) => results[a] > results[b] ? a : b);
+			let maxProfit = Object.keys(results).reduce((a, b) => Number(a) > Number(b) ?  a : b);
 			if (maxProfit > 0) {
-				console.log("Selected: ", results[maxProfit])
+				console.log("Selected: ", maxProfit, results[maxProfit])
+				trail = results[maxProfit];
+				let inchSwapper = new swapper.OneInchSwapper();
+				datas = []
+				let amount = amounts[trail[0]]
+				for(var ii=1; ii < trail.length; ++ii) {
+					from = trail[ii-1]
+					to = trail[ii]
+					data = await inchSwapper.fetchSwapData(from, to, amount)
+					datas.push(data)
+					amount = data.toTokenAmount;
+				}
 			}
 		}
 	} catch (error) {
 		console.error(error)                             
 		checkingMarkets = false
+		clearInterval(marketChecker)
 		return
 	}
 
