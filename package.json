@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@0x/order-utils": "^10.2.4",
-    "@truffle/hdwallet-provider": "^1.0.35",
+    "@truffle/hdwallet-provider": "^1.2.6",
     "axios": "^0.21.1",
     "babel": "^6.23.0",
     "console.table": "^0.10.0",
