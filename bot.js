@@ -58,5 +58,5 @@ async function checkMarkets() {
 	checkingMarkets = false
 }
 
-const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 15000 
+const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 5000 
 const marketChecker = setInterval(async() => { await checkMarkets() }, POLLING_INTERVAL)
