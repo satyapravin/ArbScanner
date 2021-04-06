@@ -43,7 +43,7 @@ async function checkMarkets() {
 					console.log("1inch swapper says swap not profitable")
 				}
 				else {
-					console.log(startamount - amount);
+					console.log(amount - startamount);
 					await trader.executeSwaps(trail, startamount, datas);
 				}
 			}

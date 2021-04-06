@@ -12,7 +12,7 @@ const bellmanFord = function(G, S) {
 	
 	for (var ii=0; ii < V+1; ++ii) {
 		paths[ii] = 0;
-
+		Graph[0][S[ii]] = 0
 		for(var jj=0; jj < V+1; ++jj) {
 			if (ii > 0 && jj > 0) {
 				Graph[ii][jj] = G[ii-1][jj-1]
@@ -20,7 +20,7 @@ const bellmanFord = function(G, S) {
 		}
 	}
 	
-	let negs = []
+	let negativeCyclePresent = false;
 
 	for (var kk=0; kk < V; ++kk)
 	{
@@ -30,11 +30,7 @@ const bellmanFord = function(G, S) {
 		{
 			if (dist[ii] + Graph[ii][jj] < dist[jj])
 			{
-				if (kk >= V - 1 && S.includes(jj-1)) 
-				{ 
-					negs.push(jj-1)
-				}
-				
+				if (kk >= V - 1) negativeCyclePresent = true;
 				dist[jj] = dist[ii] + Graph[ii][jj];
 				paths[jj] = ii;
 			}
@@ -42,13 +38,12 @@ const bellmanFord = function(G, S) {
 	  }	  
 	}
 
-	if (negs.length > 0) {
+	if (negativeCyclePresent) {
 		for (var p in paths) paths[p] = paths[p] - 1
 		paths.shift()
-		return [negs.filter((item, i, ar) => ar.indexOf(item) === i), paths];
 	}
 
-  	return [[], paths];
+  	return [negativeCyclePresent, paths];
 }
 
 module.exports = {bellmanFord};

@@ -73,9 +73,7 @@ class Scanner {
         console.log(currIdx)
         let result = bellman.bellmanFord(G, currIdx)
         
-        let negs = result[0]
-
-        if (negs.length == 0) 
+        if (!result[0]) 
         {
             console.log('Zero arb found');
             return false;
@@ -83,31 +81,40 @@ class Scanner {
         
         let path = result[1]
         console.log(path)
+        let cycles = {}
 
-        for(var idx in negs) {
-            let ii = negs[idx]
-            let rate = bigNumber.BigNumber(1)
-            let kk = ii
-            let reversePath = []
-            console.log(ii)
-
-            while(!reversePath.includes(kk))
-            {
-                reversePath.push(kk);
-                kk = path[kk];                
+        for(var idx = 0; idx < path.length; ++idx) {
+            if (cycles.hasOwnProperty(idx)) continue;
+            let visited = []
+            let jj = idx;
+            while(!visited.includes(jj)) {
+                visited.push(jj)
+                jj = path[jj]
+                if (jj < 0) break;
             }
-            reversePath.push(kk);
 
-            if (!currIdx.includes(kk)) reversePath.push(ii)
-            reversePath = reversePath.reverse();
+            if (jj > 0 && !cycles.hasOwnProperty(jj)) {
+                visited.push(jj);
+                while(visited[0] !== jj) visited.shift()
+                
+                if (!currIdx.includes(jj)) {
+                    visited.unshift(currIdx[0])
+                    visited.push(currIdx[0])
+                }
 
+                cycles[jj] = visited
+            }            
+        }
+
+        for(var cycle in cycles) {
+            let rate = bigNumber.BigNumber(1)
             let symbols = []
+            let reversePath = cycles[cycle]
             symbols.push(this.keys[reversePath[0]])
-
+            console.log(reversePath)
             for(var i = 1; i < reversePath.length; ++i) {
                 rate = rate.multipliedBy(Math.exp(-G[reversePath[i-1]][reversePath[i]]))
                 symbols.push(this.keys[reversePath[i]])
-                if (reversePath[i] == reversePath[0]) break;
             }
 
             let profit = (rate.toNumber() - 1) * this.capital
