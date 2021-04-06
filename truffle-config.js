@@ -19,7 +19,7 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const mnemonic = 'food capital estate convince magnet rose spend novel recall report fluid trumpet';
+const mnemonic = 'chase target require seek amused van tree dumb promote kitten olive time';
 const provider = new HDWalletProvider(mnemonic, 'http://localhost:8545');
 
 module.exports = {

@@ -3,17 +3,15 @@ class Assets {
         
         this.ASSET_ADDRESSES = {
 	        USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 	        MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
-	        WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-	        WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
 	        DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
         }
 
         this.ASSET_DECIMALS = {
             USDC:6, 
-            MKR: 18,
             WETH: 18,
-            WBTC: 8,
+            MKR: 18,
             DAI: 18,
         };
 

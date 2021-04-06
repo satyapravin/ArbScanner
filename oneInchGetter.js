@@ -16,7 +16,6 @@ class OneInchGetter {
                             fromTokenAddress: fromAddress,
                             toTokenAddress: toAddress,
                             amount: amount,
-                            gasPrice: 0,
                         }
                     }).then((response) => resolve([fromToken, toToken, amount, response.data]));
                 } catch (e) {

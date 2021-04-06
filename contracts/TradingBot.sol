@@ -197,7 +197,7 @@ contract TradingBot is DyDxFlashLoan {
     address payable OWNER;
 
     // OneInch Config
-    address ONE_INCH_ADDRESS = 0x111111125434b319222CdBf8C261674aDB56F3ae;
+    address ONE_INCH_ADDRESS = 0x11111112542D85B3EF69AE05771c2dCCff4fAa26;
 
     // Modifiers
     modifier onlyOwner() {
@@ -218,17 +218,13 @@ contract TradingBot is DyDxFlashLoan {
 		}
 	}
 
-    function getFlashloan(address flashToken, uint256 flashAmount, 
-	                     address arbTokenOne, address arbTokenTwo, address arbTokenThree, 
-						 bytes calldata oneInchDataOne, bytes calldata oneInchDataTwo, bytes calldata oneInchDataThree) external payable onlyOwner {
+    function getFlashloan(uint256 flashAmount, bytes calldata one, 
+                          bytes calldata two, bytes calldata three, bytes calldata four) external payable onlyOwner {
+        (address flashToken, bytes memory oneInch) = abi.decode(one, (address, bytes));
         uint256 balanceBefore = IERC20(flashToken).balanceOf(address(this));
         emit FlashTokenBeforeBalance(balanceBefore);
-
-        bytes memory data = abi.encode(flashToken, flashAmount, arbTokenOne, arbTokenTwo, arbTokenThree, balanceBefore, 
-		                               oneInchDataOne, oneInchDataTwo, oneInchDataThree);
+        bytes memory data = abi.encode(flashToken, balanceBefore, one, two, three, four);
         flashloan(flashToken, flashAmount, data);
-        // execution goes to `callFunction`
-        // and this point we have succefully paid the debt
     }
 
     function callFunction(
@@ -236,44 +232,35 @@ contract TradingBot is DyDxFlashLoan {
         Info calldata, /* accountInfo */
         bytes calldata data
     ) external onlyPool {
-        (address flashToken, uint256 flashAmount, address arbTokenOne, address arbTokenTwo, address arbTokenThree, uint256 balanceBefore, 
-		 bytes memory oneInchDataOne, bytes memory oneInchDataTwo, bytes memory oneInchDataThree) = abi
-        .decode(data, (address, uint256, address, address, address, uint256, bytes, bytes, bytes));
+        (address flashToken, uint256 balanceBefore, bytes memory one, bytes  memory two, bytes memory three, bytes memory four) = abi
+        .decode(data, (address, uint256, bytes, bytes, bytes, bytes));
+
         uint256 balanceAfter = IERC20(flashToken).balanceOf(address(this));
         
 		emit FlashTokenAfterBalance(balanceAfter);
         
 		require(
-            balanceAfter - balanceBefore == flashAmount,
-            "contract did not get the loan"
+            balanceAfter > balanceBefore,  "contract did not get the loan"
         );
-        loan = balanceAfter;
-		
-		uint256 amount = _trade(flashToken, flashAmount, oneInchDataOne);
-		amount = _trade(arbTokenOne, amount, oneInchDataTwo);
-		
-		if (arbTokenThree != address(0)){
-			amount = _trade(arbTokenTwo, amount, oneInchDataThree);
-		}
-		
-		uint256 _endBalance = IERC20(flashToken).balanceOf(address(this));
-        emit EndBalance(_endBalance);
-       require(_endBalance > balanceAfter, "End balance must exceed start balance.");
+
+        _trade(one);
+		_trade(two);
+        _trade(three);
+		_trade(four);
+		uint256 retval = IERC20(flashToken).balanceOf(address(this));
+        emit EndBalance(retval);
+        require(retval > balanceAfter, "Swap not profitable.");
     }
 	
-    function _trade(address _fromToken, uint256 _fromAmount, bytes memory _1inchData) internal returns (uint256 returnAmount) {
+    function _trade(bytes memory data) internal {
+        (address _fromToken, bytes memory _1inchData) = abi.decode(data, (address, bytes));
+        if (_fromToken == address(0)) return;
         IERC20 _fromIERC20 = IERC20(_fromToken);
-        _fromIERC20.approve(ONE_INCH_ADDRESS, _fromAmount);
-		returnAmount = _oneInchSwap(_1inchData);
+        uint256 balance = IERC20(_fromToken).balanceOf(address(this));
+        _fromIERC20.approve(ONE_INCH_ADDRESS, balance);
+        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call.value(msg.value)(_1inchData);
         _fromIERC20.approve(ONE_INCH_ADDRESS, 0);
-		return returnAmount;
-    }
-
-    function _oneInchSwap(bytes memory _oneInchCallData) internal returns (uint256 returnAmount) {
-        // Swap tokens: give _from, get _to
-        (bool success, bytes memory data) = ONE_INCH_ADDRESS.call.value(msg.value)(_oneInchCallData);
-        require(success, '1INCH_SWAP_CALL_FAILED');
-		return toUint256(data);
+        require(success, string(abi.encodePacked('1INCH_SWAP_FAILED', string(returndata))));
     }
 
     function getWeth() public payable onlyOwner {

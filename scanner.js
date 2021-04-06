@@ -23,7 +23,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(300);
+                    await utils.sleep(1000);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -75,31 +75,42 @@ class Scanner {
         
         let negs = result[0]
 
-        if (negs.length == 0) return false;
+        if (negs.length == 0) 
+        {
+            console.log('Zero arb found');
+            return false;
+        }
         
         let path = result[1]
-        
+        console.log(path)
+
         for(var idx in negs) {
             let ii = negs[idx]
             let rate = bigNumber.BigNumber(1)
             let kk = ii
-            let jj = ii
             let reversePath = []
-            
-            while(!reversePath.includes(kk) || reversePath.length === 0) {
+            console.log(ii)
+
+            while(!reversePath.includes(kk))
+            {
                 reversePath.push(kk);
-                jj = path[kk][ii]
-                rate = rate.multipliedBy(Math.exp(-G[jj][kk]))
-                kk = jj
+                kk = path[kk];                
             }
-            
-            rate = rate.multipliedBy(Math.exp(-G[ii][kk]))
-            rate = rate.toNumber()
+            reversePath.push(kk);
+
+            if (!currIdx.includes(kk)) reversePath.push(ii)
             reversePath = reversePath.reverse();
+
             let symbols = []
-            symbols.push(this.keys[ii])
-            for (i in reversePath) { symbols.push(this.keys[reversePath[i]]) }
-            let profit = (rate - 1) * this.capital
+            symbols.push(this.keys[reversePath[0]])
+
+            for(var i = 1; i < reversePath.length; ++i) {
+                rate = rate.multipliedBy(Math.exp(-G[reversePath[i-1]][reversePath[i]]))
+                symbols.push(this.keys[reversePath[i]])
+                if (reversePath[i] == reversePath[0]) break;
+            }
+
+            let profit = (rate.toNumber() - 1) * this.capital
             resultPath[profit] = symbols
             console.log(symbols.join("=>"), "capital: ", this.capital, " profit: ", profit);
         }

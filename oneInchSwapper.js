@@ -10,8 +10,8 @@ class OneInchSwapper {
             try {
                 let fromAddress = this.assets.getContractAddress(from)
                 let toAddress = this.assets.getContractAddress(to)
-                let myAddress = process.env.MY_ADDRESS
-                const res = await axios.get('https://api.1inch.exchange/v2.0/swap', {
+                let myAddress = process.env.CONTRACT_ADDRESS
+                const res = await axios.get('https://api.1inch.exchange/v3.0/1/swap', {
                     params: {
                         fromTokenAddress: fromAddress,
                         toTokenAddress: toAddress,
@@ -19,10 +19,9 @@ class OneInchSwapper {
                         amount: amount,
                         slippage: 0,
                         disableEstimate: true,
-                        gasPrice: 0,
                     }
                 });
-
+                
                 return res.data
             } catch (e) {
                 console.log(e);

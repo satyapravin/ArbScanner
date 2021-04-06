@@ -26,7 +26,9 @@
     "numeral": "^2.0.6",
     "play-sound": "",
     "sha3": "2.0.2",
-    "web3": "",
+    "web3": "^1.3.5",
+    "web3-eth": "^1.3.5",
+    "web3-eth-abi": "^1.3.5",
     "web3-provider-engine": ""
   },
   "devDependencies": {
