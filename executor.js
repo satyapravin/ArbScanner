@@ -36,14 +36,14 @@ class Executor {
             let dataArgs = []
 
             for (var i = 0; i < 4; ++i) {
-                dataArgs[i] = web3Abi.encodeParameters(['address', 'bytes'], 
-                                                        ['0x0000000000000000000000000000000000000000', '0x01']);
+                dataArgs[i] = web3Abi.encodeParameters(['address', 'uint256', 'bytes'], 
+                                                        ['0x0000000000000000000000000000000000000000', 0, '0x01']);
             }
 
             for(var i = 0; i < datas.length; ++i) {
                 let tokenAddr = this.assets.getContractAddress(tokens[i]);
-                dataArgs[i] = web3Abi.encodeParameters(['address', 'bytes'], 
-                                                        [tokenAddr, datas[i]]);
+                dataArgs[i] = web3Abi.encodeParameters(['address', 'uint256', 'bytes'], 
+                                                        [tokenAddr, tvals[i], datas[i]]);
             }
             
             try {
@@ -51,7 +51,7 @@ class Executor {
                     amount, dataArgs[0], dataArgs[1], dataArgs[2], dataArgs[3]
                 ).send({
                     from: this.address,
-                    gas: 6721974,
+                    gas: 5000000,
                     value: 0,
                 });
             

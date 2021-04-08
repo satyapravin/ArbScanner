@@ -23,7 +23,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(1000);
+                    await utils.sleep(800);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -102,7 +102,7 @@ class Scanner {
                     visited.push(currIdx[0])
                 }
 
-                cycles[jj] = visited
+                if (visited.length < 6)  cycles[jj] = visited
             }            
         }
 
@@ -110,6 +110,7 @@ class Scanner {
             let rate = bigNumber.BigNumber(1)
             let symbols = []
             let reversePath = cycles[cycle]
+            reversePath = reversePath.reverse();
             symbols.push(this.keys[reversePath[0]])
             console.log(reversePath)
             for(var i = 1; i < reversePath.length; ++i) {

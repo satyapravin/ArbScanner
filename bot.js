@@ -8,7 +8,7 @@ let checkingMarkets = false
 let finder = new scanner.Scanner(process.argv[2])
 let trader = new executor.Executor(process.env.RPC_URL, process.env.PRIVATE_KEY)
 trader.registerEvents();
-let loanCurrencies = ['USDC', 'DAI', 'WETH']
+let loanCurrencies = ['WETH', 'DAI', 'USDC']
 
 async function checkMarkets() {
 	if(checkingMarkets) {
@@ -23,12 +23,13 @@ async function checkMarkets() {
 		let amounts = {}
 		let found = await finder.findArbitrage(results, amounts, loanCurrencies);
 		if (found) {
-			let maxProfit = Object.keys(results).reduce((a, b) => a > b ?  a : b);
+			let maxProfit = Object.keys(results).reduce((a, b) => Number(a) > Number(b) ?  a : b);
 			if (maxProfit > 0 && results[maxProfit].length < 6) {
 				console.log("Selected: ", maxProfit, results[maxProfit])
 				trail = results[maxProfit];
 				let inchSwapper = new swapper.OneInchSwapper();
 				datas = []
+				tvals = []
 				let startamount = amounts[trail[0]]
 				let amount = startamount
 				for(var ii=1; ii < trail.length; ++ii) {
@@ -36,15 +37,17 @@ async function checkMarkets() {
 					to = trail[ii]
 					data = await inchSwapper.fetchSwapData(from, to, amount)
 					datas.push(data.tx.data);
+					tvals.push(data.tx.value);
 					amount = data.toTokenAmount;
+					console.log('transfer value', data.tx.value)
 				}
 				
 				if (amount < startamount) {
-					console.log("1inch swapper says swap not profitable")
+					console.log("1inch swapper says swap not profitable", startamount, amount)
 				}
 				else {
 					console.log(amount - startamount);
-					await trader.executeSwaps(trail, startamount, datas);
+					await trader.executeSwaps(trail, startamount, datas, tvals);
 				}
 			}
 		}
@@ -58,5 +61,5 @@ async function checkMarkets() {
 	checkingMarkets = false
 }
 
-const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 5000 
+const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 10000 
 const marketChecker = setInterval(async() => { await checkMarkets() }, POLLING_INTERVAL)

@@ -17,8 +17,13 @@ class OneInchSwapper {
                         toTokenAddress: toAddress,
                         fromAddress: myAddress,
                         amount: amount,
+                        gasPrice: 0,
                         slippage: 0,
                         disableEstimate: true,
+                        parts: 1,
+                        mainRouteParts: 1,
+                        complexityLevel: 0,
+                        connectorTokens: "",
                     }
                 });
                 

@@ -220,7 +220,7 @@ contract TradingBot is DyDxFlashLoan {
 
     function getFlashloan(uint256 flashAmount, bytes calldata one, 
                           bytes calldata two, bytes calldata three, bytes calldata four) external payable onlyOwner {
-        (address flashToken, bytes memory oneInch) = abi.decode(one, (address, bytes));
+        (address flashToken, uint256 tval, bytes memory oneInch) = abi.decode(one, (address, uint256, bytes));
         uint256 balanceBefore = IERC20(flashToken).balanceOf(address(this));
         emit FlashTokenBeforeBalance(balanceBefore);
         bytes memory data = abi.encode(flashToken, balanceBefore, one, two, three, four);
@@ -253,12 +253,12 @@ contract TradingBot is DyDxFlashLoan {
     }
 	
     function _trade(bytes memory data) internal {
-        (address _fromToken, bytes memory _1inchData) = abi.decode(data, (address, bytes));
+        (address _fromToken, uint256 tval, bytes memory _1inchData) = abi.decode(data, (address, uint256, bytes));
         if (_fromToken == address(0)) return;
         IERC20 _fromIERC20 = IERC20(_fromToken);
         uint256 balance = IERC20(_fromToken).balanceOf(address(this));
         _fromIERC20.approve(ONE_INCH_ADDRESS, balance);
-        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call.value(msg.value)(_1inchData);
+        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call.value(tval)(_1inchData);
         _fromIERC20.approve(ONE_INCH_ADDRESS, 0);
         require(success, string(abi.encodePacked('1INCH_SWAP_FAILED', string(returndata))));
     }

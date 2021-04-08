@@ -10,18 +10,21 @@ class OneInchGetter {
             let toAddress = this.assets.getContractAddress(toToken);
 
             return new Promise(function(resolve, reject) {
-                try {
                     axios.get('https://api.1inch.exchange/v3.0/1/quote', {
                         params: {
                             fromTokenAddress: fromAddress,
                             toTokenAddress: toAddress,
                             amount: amount,
+                            gasPrice: 0,
+                            parts: 1,
+                            mainRouteParts: 1,
+                            complexityLevel: 0,
+                            connectorTokens: "",
                         }
-                    }).then((response) => resolve([fromToken, toToken, amount, response.data]));
-                } catch (e) {
+                    }).then((response) => resolve([fromToken, toToken, amount, response.data])).catch (e => {
                     console.log(fromToken, toToken, amount);
                     return reject(e);
-                }
+                });
             });
         }
 
@@ -30,18 +33,17 @@ class OneInchGetter {
             let toAddress = this.assets.getContractAddress(toToken);
                 
             return new Promise(function(resolve, reject) {
-                try {
                     axios.get('https://api.1inch.exchange/v3.0/1/quote', {
                         params: {
                             fromTokenAddress: fromAddress,
                             toTokenAddress: toAddress,
                             amount: amount,
                         }
-                    }).then((response) => resolve([fromToken, toToken, amount, response.data]));
-                } catch (e) {
-                    console.log(fromToken, toToken, amount);
-                    return reject(e);
-                }
+                    }).then((response) => resolve([fromToken, toToken, amount, response.data])).catch (e => {
+                        console.log(fromToken, toToken, amount);
+                        return reject(e);
+                    });
+         
             });
         }
     }
