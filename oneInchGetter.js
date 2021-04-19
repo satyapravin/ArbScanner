@@ -10,6 +10,7 @@ class OneInchGetter {
             let toAddress = this.assets.getContractAddress(toToken);
 
             return new Promise(function(resolve, reject) {
+                    console.log(fromAddress, toAddress, amount)
                     axios.get('https://api.1inch.exchange/v3.0/1/quote', {
                         params: {
                             fromTokenAddress: fromAddress,
@@ -38,6 +39,8 @@ class OneInchGetter {
                             fromTokenAddress: fromAddress,
                             toTokenAddress: toAddress,
                             amount: amount,
+                            gasPrice: 0,
+                            
                         }
                     }).then((response) => resolve([fromToken, toToken, amount, response.data])).catch (e => {
                         console.log(fromToken, toToken, amount);

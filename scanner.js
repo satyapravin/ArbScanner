@@ -6,7 +6,7 @@ const contracts = require('./assets.js')
 
 class Scanner {
     constructor(totalCapital) {
-        this.calibration = true
+        this.calibration = 0
         this.assets = new contracts.Assets()
         this.keys = this.assets.getSymbols()
         this.V = utils.array2D(this.keys.length, 0)
@@ -18,7 +18,13 @@ class Scanner {
     async findArbitrage(resultPath, amounts, loanCurrencies) {
         console.log(`Fetching market data @ ${utils.now()} ...\n`)
         let G = utils.array2D(this.keys.length, 0);
-        this.V[0][0] = this.capital
+        if (this.V[0][0] == 0)
+        {
+            this.V[0][0] = 100
+        } else {
+            this.V[0][0] = this.capital
+        }
+
         let promises = []
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
@@ -28,8 +34,13 @@ class Scanner {
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
                                          this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed()
-                    if(i !== 0) if(this.V[0][i] > 0) amount = bigNumber.BigNumber(this.V[0][i]).toFixed()
-                    if (!amounts.hasOwnProperty(from)) amounts[from] = amount;
+                    if(i !== 0) {
+                        if(this.V[0][i] > 0) {
+                            amount = bigNumber.BigNumber(this.V[0][i]).toFixed()
+                        }
+                    }
+                    
+                    amounts[from] = amount;
                     let p = this.aggregator.getExpectedReturnWithoutGas(from, to, amount)
                     promises.push(p);
                 } else {
@@ -64,7 +75,7 @@ class Scanner {
             }
         });
         
-        if (this.calibration) { this.calibration = false; console.log("Model calibrating....."); return false }
+        if (this.calibration < 2) { this.calibration += 1; console.log("Model calibrating....."); return false }
         
         let currIdx = []
         for(var curr in loanCurrencies) {

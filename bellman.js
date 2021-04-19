@@ -22,7 +22,7 @@ const bellmanFord = function(G, S) {
 	
 	let negativeCyclePresent = false;
 
-	for (var kk=0; kk < V; ++kk)
+	for (var kk=0; kk < V+2; ++kk)
 	{
 	  for(var ii=0; ii < V; ++ii)
 	  {

@@ -7,7 +7,6 @@ class Assets {
             WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 	        MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
             WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            PAX: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
         }
 
         this.ASSET_DECIMALS = {
@@ -16,7 +15,6 @@ class Assets {
             WETH: 18,
             MKR: 18,
             WBTC: 8,
-            PAX: 18,
         };
 
         this.keys = Object.keys(this.ASSET_ADDRESSES);

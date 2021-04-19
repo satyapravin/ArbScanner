@@ -8,7 +8,7 @@ let checkingMarkets = false
 let finder = new scanner.Scanner(process.argv[2])
 let trader = new executor.Executor(process.env.RPC_URL, process.env.PRIVATE_KEY)
 trader.registerEvents();
-let loanCurrencies = ['WETH', 'DAI', 'USDC']
+let loanCurrencies = ['USDC', 'DAI', 'WETH']
 
 async function checkMarkets() {
 	if(checkingMarkets) {
