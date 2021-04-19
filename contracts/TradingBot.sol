@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 
@@ -69,9 +69,9 @@ interface Structs {
     }
 }
 
-contract DyDxPool is Structs {
-    function getAccountWei(Info memory account, uint256 marketId) public view returns (Wei memory);
-    function operate(Info[] memory, ActionArgs[] memory) public;
+abstract contract DyDxPool is Structs {
+    function getAccountWei(Info memory account, uint256 marketId) public virtual view returns (Wei memory);
+    function operate(Info[] memory, ActionArgs[] memory) public virtual;
 }
 
 /**
@@ -104,7 +104,7 @@ contract DyDxFlashLoan is Structs {
     address public DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     mapping(address => uint256) public currencies;
 
-    constructor() public {
+    constructor() {
         currencies[WETH] = 1;
         currencies[SAI] = 2;
         currencies[USDC] = 3;
@@ -194,7 +194,7 @@ contract TradingBot is DyDxFlashLoan {
 
 
     // Addresses
-    address payable OWNER;
+    address OWNER;
 
     // OneInch Config
     address ONE_INCH_ADDRESS = 0x11111112542D85B3EF69AE05771c2dCCff4fAa26;
@@ -206,9 +206,11 @@ contract TradingBot is DyDxFlashLoan {
     }
 
     // Allow the contract to receive Ether
-    function () external payable {}
+    fallback () external payable {}
 
-    constructor() public payable {
+    receive() external payable {}
+
+    constructor() {
         OWNER = msg.sender;
     }
 	
@@ -258,7 +260,7 @@ contract TradingBot is DyDxFlashLoan {
         IERC20 _fromIERC20 = IERC20(_fromToken);
         uint256 balance = IERC20(_fromToken).balanceOf(address(this));
         _fromIERC20.approve(ONE_INCH_ADDRESS, balance);
-        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call.value(tval)(_1inchData);
+        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call{value:tval}(_1inchData);
         _fromIERC20.approve(ONE_INCH_ADDRESS, 0);
         require(success, string(abi.encodePacked('1INCH_SWAP_FAILED', string(returndata))));
     }
@@ -268,7 +270,7 @@ contract TradingBot is DyDxFlashLoan {
     }
 
     function _getWeth(uint256 _amount) internal {
-        (bool success,) = WETH.call.value(_amount)("");
+        (bool success,) = WETH.call{value:_amount}("");
         require(success, "failed to get weth");
     }
 
@@ -283,6 +285,6 @@ contract TradingBot is DyDxFlashLoan {
         address self = address(this);
         // workaround for a possible solidity bug
         uint256 balance = self.balance;
-        address(OWNER).transfer(balance);
+        payable(OWNER).transfer(balance);
     }
 }
