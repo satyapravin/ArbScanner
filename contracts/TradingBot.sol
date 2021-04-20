@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
-
+import './utils.sol';
+import './IExchangeWrapper.sol';
 
 interface Structs {
     struct SwapDescription {
@@ -74,30 +75,9 @@ abstract contract DyDxPool is Structs {
     function operate(Info[] memory, ActionArgs[] memory) public virtual;
 }
 
-/**
- * @dev Interface of the ERC20 standard as defined in the EIP. Does not include
- * the optional functions; to access them see `ERC20Detailed`.
- */
-interface IERC20 {
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address account) external view returns (uint256);
-
-    function transfer(address recipient, uint256 amount) external returns (bool);
-
-    function allowance(address owner, address spender) external view returns (uint256);
-
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-}
 
 contract DyDxFlashLoan is Structs {
     DyDxPool pool = DyDxPool(0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e);
-
     address public WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public SAI = 0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359;
     address public USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -180,52 +160,104 @@ contract DyDxFlashLoan is Structs {
 // SPDX-License-Identifier: MIT
 
 contract TradingBot is DyDxFlashLoan {
-    event StartBalance(uint256 balance);
-    event EndBalance(uint256 balance);
-    event OneInchBeforeDAIBalance(uint256 balance);
-    event OneInchAfterDAIBalance(uint256 balance);
-    event OneInchBeforeWETHBalance(uint256 balance);
-    event OneInchAfterWETHBalance(uint256 balance);
     event FlashTokenBeforeBalance(uint256 balance);
     event FlashTokenAfterBalance(uint256 balance);
+    event EndBalance(uint256 balance);
 
     uint256 public loan;
-//    uint256 reserve = 2 ether;
-
 
     // Addresses
     address OWNER;
 
-    // OneInch Config
-    address ONE_INCH_ADDRESS = 0x11111112542D85B3EF69AE05771c2dCCff4fAa26;
+    // Currencies
+    mapping(uint8 => address) currencyAddresses;
+    uint8[] currencyIds;
 
+    // Exchange Wrappers
+    mapping(uint8 => address) exchangeWrappers;
+    uint8[] exchangeIds;
+
+    constructor() {
+        OWNER = msg.sender;
+    }
+    
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == OWNER, "caller is not the owner!");
         _;
     }
 
-    // Allow the contract to receive Ether
+    function addCurrency(uint8 currencyId, address currencyAddress) external onlyOwner {
+        currencyAddresses[currencyId] = currencyAddress;
+        currencyIds.push(currencyId);
+    }
+
+    function addExchangeWrapper(uint8 exchangeId, address wrapper) external onlyOwner {
+        exchangeWrappers[exchangeId] = wrapper;
+        exchangeIds.push(exchangeId);
+    }
+
+    function removeCurrency(uint8 currencyId) external onlyOwner {
+        delete currencyAddresses[currencyId];
+        
+        for(uint ii=0; ii < currencyIds.length; ++ii) {
+            if (currencyIds[ii] == currencyId) {
+                delete currencyIds[ii];
+                break;
+            }
+        }
+    }
+
+    function removeExchangeWrapper(uint8 exchangeId) external onlyOwner {
+        delete exchangeWrappers[exchangeId];
+
+        for(uint ii=0; ii < exchangeIds.length; ++ii) {
+            if (exchangeIds[ii] == exchangeId) {
+                delete exchangeIds[ii];
+                break;
+            }
+        }
+
+    }
+
+    function getCurrency(uint8 currencyId) external view onlyOwner returns (address) {
+        return currencyAddresses[currencyId];
+    }
+
+    function getExchangeWrapper(uint8 exchangeId) external view onlyOwner returns (address) {
+        return exchangeWrappers[exchangeId];
+    }
+
+    function getRate(uint8 fromToken, uint8 toToken, uint256 amount) external onlyOwner returns(uint8, uint256) {
+        address from = currencyAddresses[fromToken];
+        address to = currencyAddresses[toToken];
+
+        uint8 selection = 0;
+        uint256 maxAmount = 0;
+
+        for(uint8 ii = 0; ii < exchangeIds.length; ++ii) {
+            IExchangeWrapper exchange = IExchangeWrapper(exchangeWrappers[exchangeIds[ii]]);
+            uint256 returnAmount = exchange.getRate(from, to, amount);
+
+            if (returnAmount > maxAmount) {
+                maxAmount = returnAmount;
+                selection = ii;
+            }
+        }
+
+        return (selection, maxAmount);
+    } 
+
     fallback () external payable {}
 
     receive() external payable {}
 
-    constructor() {
-        OWNER = msg.sender;
-    }
-	
-	function toUint256(bytes memory _bytes) internal pure returns (uint256 value) {
-		assembly {
-		value := mload(add(_bytes, 0x20))
-		}
-	}
-
-    function getFlashloan(uint256 flashAmount, bytes calldata one, 
-                          bytes calldata two, bytes calldata three, bytes calldata four) external payable onlyOwner {
-        (address flashToken, uint256 tval, bytes memory oneInch) = abi.decode(one, (address, uint256, bytes));
+	function getFlashloan(uint256 flashAmount, uint8 firstToken, 
+                          uint8[] calldata nextTokens, uint8[] calldata exchanges) external payable onlyOwner {
+        address flashToken = currencyAddresses[firstToken];
         uint256 balanceBefore = IERC20(flashToken).balanceOf(address(this));
         emit FlashTokenBeforeBalance(balanceBefore);
-        bytes memory data = abi.encode(flashToken, balanceBefore, one, two, three, four);
+        bytes memory data = abi.encode(flashToken, nextTokens, exchanges, balanceBefore);
         flashloan(flashToken, flashAmount, data);
     }
 
@@ -234,8 +266,8 @@ contract TradingBot is DyDxFlashLoan {
         Info calldata, /* accountInfo */
         bytes calldata data
     ) external onlyPool {
-        (address flashToken, uint256 balanceBefore, bytes memory one, bytes  memory two, bytes memory three, bytes memory four) = abi
-        .decode(data, (address, uint256, bytes, bytes, bytes, bytes));
+        (address flashToken, uint8[] memory nextTokens, uint8[] memory exchanges, uint256 balanceBefore) = abi
+        .decode(data, (address, uint8[], uint8[], uint256));
 
         uint256 balanceAfter = IERC20(flashToken).balanceOf(address(this));
         
@@ -245,24 +277,27 @@ contract TradingBot is DyDxFlashLoan {
             balanceAfter > balanceBefore,  "contract did not get the loan"
         );
 
-        _trade(one);
-		_trade(two);
-        _trade(three);
-		_trade(four);
-		uint256 retval = IERC20(flashToken).balanceOf(address(this));
+        address from = flashToken;
+        uint256 amount = balanceAfter;
+
+        for(uint8 ii = 0; ii < exchanges.length; ++ii) {
+            address to = currencyAddresses[nextTokens[ii]];
+            _trade(from, to, exchangeWrappers[exchanges[ii]], amount);
+            from = to;
+            amount = IERC20(from).balanceOf(address(this));
+            require(amount > 0, "From amount equals zero");
+        }
+
+        uint256 retval = IERC20(flashToken).balanceOf(address(this));
         emit EndBalance(retval);
         require(retval > balanceAfter, "Swap not profitable.");
     }
 	
-    function _trade(bytes memory data) internal {
-        (address _fromToken, uint256 tval, bytes memory _1inchData) = abi.decode(data, (address, uint256, bytes));
-        if (_fromToken == address(0)) return;
-        IERC20 _fromIERC20 = IERC20(_fromToken);
-        uint256 balance = IERC20(_fromToken).balanceOf(address(this));
-        _fromIERC20.approve(ONE_INCH_ADDRESS, balance);
-        (bool success, bytes memory returndata) = ONE_INCH_ADDRESS.call{value:tval}(_1inchData);
-        _fromIERC20.approve(ONE_INCH_ADDRESS, 0);
-        require(success, string(abi.encodePacked('1INCH_SWAP_FAILED', string(returndata))));
+    function _trade(address from, address to, address exchAddress, uint256 amount) internal {
+        IERC20 _fromIERC20 = IERC20(from);
+        IExchangeWrapper exchange = IExchangeWrapper(exchAddress);
+        _fromIERC20.transfer(exchAddress, amount);
+        exchange.swapTokens(from, to, amount, address(this));
     }
 
     function getWeth() public payable onlyOwner {

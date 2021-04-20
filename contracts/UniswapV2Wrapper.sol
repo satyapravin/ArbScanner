@@ -154,11 +154,14 @@ contract UniswapV2Wrapper is IExchangeWrapper, Withdrawer {
         return retval[1];
     }
 
-    function swapTokens(address fromToken, address toToken, uint256 amount, address to, uint256 deadline) override external {
+    function swapTokens(address fromToken, address toToken, uint256 amount, address to) override external {
         address[] memory path = new address[](2);
         path[0] = fromToken;
         path[1] = toToken;
         IUniswapV2Router02 uniRouter = IUniswapV2Router02(router);
-        uniRouter.swapExactTokensForTokens(amount, 1, path, to, deadline);
+        IERC20 fromERC20 = IERC20(fromToken);
+        fromERC20.approve(router, amount);
+        uniRouter.swapExactTokensForTokens(amount, 0, path, to, block.timestamp + 2000);
+        // fromERC20.approve(router, 0);
     }
 }
