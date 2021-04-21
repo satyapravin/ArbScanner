@@ -55,16 +55,17 @@ class StaticDataAdder {
             }
         }
 
-        this.addExchange = async function(id, address) {
+        this.addExchange = async function(id, address, nonce) {
             try {
-                
                 let receipt = await this.trader.methods.addExchangeWrapper(id, address).send({
                     from: this.address,
                     gas: 500000,
                     value: 0,
+                    nonce: nonce,
                 });
             
                 console.log('#####: receipt: ', receipt);
+                return ++nonce;
             }
             catch(error) {
                 throw error;
@@ -82,11 +83,18 @@ class StaticDataAdder {
                 sleep(1000);
                 nonce++;
             }
+
+            return nonce;
         }
 
         this.registerCurrency = async function(id, address, nonce) {
             try {
                 
+                if(nonce < 0)
+                {
+                    nonce = await this.web3.eth.getTransactionCount(this.address,  "pending");
+                }
+
                 let receipt = await this.trader.methods.addCurrency(id, address).send({
                     from: this.address,
                     gas: 500000,
@@ -113,9 +121,7 @@ getAmounts = async function() {
     console.log(retval[1]);
     retval = await adder.getAmount(2, 3, retval[1]);
     console.log(retval[1]);
-    retval = await adder.getAmount(3, 4, retval[1]);
-    console.log(retval[1]);
-    retval = await adder.getAmount(4, 1, retval[1]);
+    retval = await adder.getAmount(3, 0, retval[1]);
     console.log(retval[1]);
 }
 
@@ -125,14 +131,20 @@ swapper = async function()
     const base10 = new bigNumber(10);
     var amount = new bigNumber(1000).multipliedBy(base10.exponentiatedBy(18));
     console.log(amount.toNumber());
-    await adder.swapTokens(amount, 0, [3, 0], [1, 0]);
+    await adder.swapTokens(amount, 0, [1, 5, 1], [2, 0, 1]);
 }
 
 let adder = new StaticDataAdder();
 
 
-//adder.addAllCurrencies();
-//adder.addExchange(0, "0x0e008924D07bF4A2D709369459a92b3D08576F65");
-//adder.addExchange(1, "0x1BA0905cDD46EB0f9Dd9Ea62c396deAFcD45055a");
+registerData = async function() {
+    var nonce = await adder.addAllCurrencies();
+    nonce = await adder.addExchange(0, "0x0e008924D07bF4A2D709369459a92b3D08576F65", nonce);
+    nonce = await adder.addExchange(1, "0x1BA0905cDD46EB0f9Dd9Ea62c396deAFcD45055a", nonce);
+    nonce = await adder.addExchange(2, "0x1e66763807Ca2B4afD08cd35EC6b70bA68Ee6704", nonce);
+    nonce = await adder.addExchange(3, "0x7876dfbD59eBAE9d42645fc0744E42af6A652c32", nonce);
+}
+
+registerData();
 //getAmounts();
 //swapper();

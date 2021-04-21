@@ -6,8 +6,10 @@ class Assets {
             USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
             WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            COMP: '0xc00e94cb662c3520282e6f5717214004a7f26888',
-            MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+            //COMP: '0xc00e94cb662c3520282e6f5717214004a7f26888',
+            //MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+            //BNT: '0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c',
+            BAT: '0x0d8775f648430679a709e98d2b0cb6250d2887ef',
         }
 
         this.ASSET_DECIMALS = {
@@ -15,8 +17,10 @@ class Assets {
             USDC:6, 
             WETH: 18,
             WBTC: 8,
-            COMP: 18,
-            MKR: 18,
+            //COMP: 18,
+            //MKR: 18,
+            //BNT: 18,
+            BAT: 18,
         };
 
         this.keys = Object.keys(this.ASSET_ADDRESSES);
