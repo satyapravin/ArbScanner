@@ -107,9 +107,15 @@ class StaticDataAdder {
 getAmounts = async function() {
     const base10 = new bigNumber(10);
     var amount = new bigNumber(1000).multipliedBy(base10.exponentiatedBy(18));
-    retval = await adder.getAmount(0, 4, amount);
+    retval = await adder.getAmount(0, 1, amount);
     console.log(retval[1]);
-    retval = await adder.getAmount(4, 0, retval[1]);
+    retval = await adder.getAmount(1, 2, retval[1]);
+    console.log(retval[1]);
+    retval = await adder.getAmount(2, 3, retval[1]);
+    console.log(retval[1]);
+    retval = await adder.getAmount(3, 4, retval[1]);
+    console.log(retval[1]);
+    retval = await adder.getAmount(4, 1, retval[1]);
     console.log(retval[1]);
 }
 
@@ -127,7 +133,6 @@ let adder = new StaticDataAdder();
 
 //adder.addAllCurrencies();
 //adder.addExchange(0, "0x0e008924D07bF4A2D709369459a92b3D08576F65");
-adder.addExchange(1, "0x1BA0905cDD46EB0f9Dd9Ea62c396deAFcD45055a");
-
+//adder.addExchange(1, "0x1BA0905cDD46EB0f9Dd9Ea62c396deAFcD45055a");
 //getAmounts();
 //swapper();
