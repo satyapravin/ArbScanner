@@ -17,6 +17,13 @@ contract UniswapV2Wrapper is IExchangeWrapper, Withdrawer {
         address pair = factory.getPair(fromToken, toToken);
 
         if (pair == address(0)) {
+
+            pair = factory.getPair(fromToken, uniRouter.WETH());
+            if(pair == address(0)) return 0;
+            
+            pair = factory.getPair(toToken, uniRouter.WETH());
+            if(pair == address(0)) return 0;
+
             address[] memory path = new address[](3);
             path[0] = fromToken;
             path[1] = uniRouter.WETH();
