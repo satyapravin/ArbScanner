@@ -14,10 +14,6 @@ class Executor {
         
 
         this.registerEvents = function() {
-            this.trader.events.StartBalance().on('data', function(event) {
-                console.log("###: StartBalance:", event.returnValues)
-            }).on('error', console.error);
-        
             this.trader.events.EndBalance().on('data', function(event) {
                 console.log("###: EndBalance:", event.returnValues)
             }).on('error', console.error);

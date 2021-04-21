@@ -1,6 +1,6 @@
 const bellman = require('./bellman.js')
 const bigNumber = require('./bigNumber.js')
-const oneInch = require('./oneInchGetter.js')
+const getter = require('./ownGetter.js')
 const utils = require('./utils.js')
 const contracts = require('./assets.js')
 
@@ -12,7 +12,7 @@ class Scanner {
         this.V = utils.array2D(this.keys.length, 0)
         this.capital = totalCapital
         this.base10 = new bigNumber.BigNumber(10)
-        this.aggregator = new oneInch.OneInchGetter()
+        this.aggregator = new getter.OwnGetter()
     }
 
     async findArbitrage(resultPath, amounts, loanCurrencies) {
@@ -41,7 +41,7 @@ class Scanner {
                     }
                     
                     amounts[from] = amount;
-                    let p = this.aggregator.getExpectedReturnWithoutGas(from, to, amount)
+                    let p = this.aggregator.getExpectedReturn(from, to, amount)
                     promises.push(p);
                 } else {
                     G[i][j] = 0
@@ -54,8 +54,8 @@ class Scanner {
         data.map((response) => {
             let i = this.keys.indexOf(response.value[0])
             let j = this.keys.indexOf(response.value[1]) 
-            let amount = Number(response.value[2])
-            let rate = response.value[3].toTokenAmount
+            let amount = Number(response.value[2]);
+            let rate = response.value[3][1];
             let from = this.keys[i];
             let to = this.keys[j];
             

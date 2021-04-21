@@ -228,7 +228,7 @@ contract TradingBot is DyDxFlashLoan {
         return exchangeWrappers[exchangeId];
     }
 
-    function getRate(uint8 fromToken, uint8 toToken, uint256 amount) external onlyOwner returns(uint8, uint256) {
+    function getRate(uint8 fromToken, uint8 toToken, uint256 amount) external view onlyOwner returns(uint8, uint256) {
         address from = currencyAddresses[fromToken];
         address to = currencyAddresses[toToken];
 
@@ -236,7 +236,9 @@ contract TradingBot is DyDxFlashLoan {
         uint256 maxAmount = 0;
 
         for(uint8 ii = 0; ii < exchangeIds.length; ++ii) {
+
             IExchangeWrapper exchange = IExchangeWrapper(exchangeWrappers[exchangeIds[ii]]);
+            
             uint256 returnAmount = exchange.getRate(from, to, amount);
 
             if (returnAmount > maxAmount) {
@@ -278,14 +280,14 @@ contract TradingBot is DyDxFlashLoan {
         );
 
         address from = flashToken;
+        address to = flashToken;
         uint256 amount = balanceAfter;
 
         for(uint8 ii = 0; ii < exchanges.length; ++ii) {
-            address to = currencyAddresses[nextTokens[ii]];
+            to = currencyAddresses[nextTokens[ii]];
             _trade(from, to, exchangeWrappers[exchanges[ii]], amount);
             from = to;
             amount = IERC20(from).balanceOf(address(this));
-            require(amount > 0, "From amount equals zero");
         }
 
         uint256 retval = IERC20(flashToken).balanceOf(address(this));
@@ -293,11 +295,57 @@ contract TradingBot is DyDxFlashLoan {
         require(retval > balanceAfter, "Swap not profitable.");
     }
 	
+    function bytesToString(bytes memory byteCode) public pure returns(string memory stringData)
+    {
+        uint256 blank = 0; //blank 32 byte value
+        uint256 length = byteCode.length;
+
+        uint cycles = byteCode.length / 0x20;
+        uint requiredAlloc = length;
+
+        if (length % 0x20 > 0) //optimise copying the final part of the bytes - to avoid looping with single byte writes
+        {
+            cycles++;
+            requiredAlloc += 0x20; //expand memory to allow end blank, so we don't smack the next stack entry
+        }
+
+        stringData = new string(requiredAlloc);
+
+        //copy data in 32 byte blocks
+        assembly {
+            let cycle := 0
+
+            for
+            {
+                let mc := add(stringData, 0x20) //pointer into bytes we're writing to
+                let cc := add(byteCode, 0x20)   //pointer to where we're reading from
+            } lt(cycle, cycles) {
+                mc := add(mc, 0x20)
+                cc := add(cc, 0x20)
+                cycle := add(cycle, 0x01)
+            } {
+                mstore(mc, mload(cc))
+            }
+        }
+
+        //finally blank final bytes and shrink size (part of the optimisation to avoid looping adding blank bytes1)
+        if (length % 0x20 > 0)
+        {
+            uint offsetStart = 0x20 + length;
+            assembly
+            {
+                let mc := add(stringData, offsetStart)
+                mstore(mc, mload(add(blank, 0x20)))
+                //now shrink the memory back so the returned object is the correct size
+                mstore(stringData, length)
+            }
+        }
+    }
+
     function _trade(address from, address to, address exchAddress, uint256 amount) internal {
-        IERC20 _fromIERC20 = IERC20(from);
-        IExchangeWrapper exchange = IExchangeWrapper(exchAddress);
-        _fromIERC20.transfer(exchAddress, amount);
-        exchange.swapTokens(from, to, amount, address(this));
+        (bool success, bytes memory result) = exchAddress.delegatecall(abi.encodeWithSignature("swapTokens(address,address,uint256,address)", 
+                                                      from, to, amount, address(this)));
+        require(success, bytesToString(result));
     }
 
     function getWeth() public payable onlyOwner {
