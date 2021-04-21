@@ -3,6 +3,7 @@ var UniswapV2Wrapper = artifacts.require("./UniswapV2Wrapper.sol");
 var SushiSwapWrapper = artifacts.require("./SushiSwapWrapper.sol");
 var BalancerWrapper = artifacts.require("./BalancerWrapper.sol");
 var BancorWrapper = artifacts.require("./BancorWrapper.sol");
+var KyberWrapper = artifacts.require("./KyberWrapper.sol");
 
 module.exports = function(deployer, network, accounts) {
 	deployer.deploy(TradingBot, {from: accounts[0], value: "0"});
@@ -10,4 +11,5 @@ module.exports = function(deployer, network, accounts) {
 	deployer.deploy(SushiSwapWrapper, {from: accounts[0], value: "0"});
 	deployer.deploy(BalancerWrapper, {from: accounts[0], value: "0"});
 	deployer.deploy(BancorWrapper, {from: accounts[0], value: "0"});
+	deployer.deploy(KyberWrapper, {from: accounts[0], value: "0"});
 };
