@@ -29,7 +29,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(800);
+                    await utils.sleep(200);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -67,7 +67,7 @@ class Scanner {
                         bigNumber.BigNumber(amount).dividedBy(
                                            this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), ret);
                 
-                G[i][j] = -Math.log(ret)
+                G[i][j] = -Math.log(ret);
                 this.V[i][j] = rate
             }
             else { 

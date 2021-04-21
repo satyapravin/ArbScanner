@@ -18,6 +18,7 @@ class OwnGetter {
                     obj.trader.methods.getRate(fromIndex, toIndex, amount).call()
                     .then((response) => { console.log(response); resolve([fromToken, toToken, amount, response])}).catch (e => {
                     console.log(fromIndex, toIndex, amount);
+                    console.log(e);
                     return reject(e);
                 });
             });
