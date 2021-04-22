@@ -14,17 +14,9 @@ interface ERC20 {
     event Approval(address indexed _owner, address indexed _spender, uint _value);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @title Kyber Network proxy for main contract
 abstract contract KyberNetworkProxy {
-    /// @dev makes a trade between src and dest token and send dest tokens to msg sender
-    /// @param src Src token
-    /// @param srcAmount amount of src tokens
-    /// @param dest Destination token
-    /// @param minConversionRate The minimal conversion rate. If actual rate is lower, trade is canceled.
-    /// @return amount of actual dest tokens
-    function swapTokenToToken(ERC20 src, uint srcAmount, ERC20 dest, uint minConversionRate) public virtual returns(uint);
-    function getExpectedRate(ERC20 src, ERC20 dest, uint srcQty) public virtual view returns(uint expectedRate, uint slippageRate);   
+    function swapTokenToToken(ERC20 src, uint256 srcAmount, ERC20 dest, uint256 minConversionRate) public virtual returns(uint256);
+    function getExpectedRateAfterFee(ERC20 src, ERC20 dest, uint256 srcQty, uint256 fees, bytes memory hint) public virtual view returns(uint256 expectedRate);   
 }
 
 contract KyberWrapper is IExchangeWrapper, Withdrawer {
@@ -32,16 +24,17 @@ contract KyberWrapper is IExchangeWrapper, Withdrawer {
     constructor() {
     }
 
-    function getRate(address fromToken, address toToken, uint256 amount) override external view returns (uint256) {
 
-        address kyberRegistryAddress = 0x818E6FECD516Ecc3849DAf6845e3EC868087B755;
+    function getRate(address fromToken, address toToken, uint256 amount) override external view returns (uint256) {
+        address kyberRegistryAddress = 0x9AAb3f75489902f3a48495025729a0AF77d4b11e;
         KyberNetworkProxy kyber = KyberNetworkProxy(kyberRegistryAddress);
-        (uint expectedRate, )  = kyber.getExpectedRate(ERC20(fromToken), ERC20(toToken), amount);
+        bytes memory hint = new bytes(0);
+        uint256 expectedRate  = kyber.getExpectedRateAfterFee(ERC20(fromToken), ERC20(toToken), amount, 25, hint);
         return expectedRate;
     }
 
     function swapTokens(address fromToken, address toToken, uint256 amount, address to) override public payable {
-        address kyberRegistryAddress = 0x818E6FECD516Ecc3849DAf6845e3EC868087B755;
+        address kyberRegistryAddress = 0x9AAb3f75489902f3a48495025729a0AF77d4b11e;
         KyberNetworkProxy kyber = KyberNetworkProxy(kyberRegistryAddress);
         
         IERC20 fromERC20 = IERC20(fromToken);

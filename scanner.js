@@ -55,7 +55,7 @@ class Scanner {
             let i = this.keys.indexOf(response.value[0])
             let j = this.keys.indexOf(response.value[1]) 
             let amount = Number(response.value[2]);
-            let rate = response.value[3][1];
+            let rate = response.value[3];
             let from = this.keys[i];
             let to = this.keys[j];
             
@@ -90,31 +90,37 @@ class Scanner {
             return false;
         }
         
-        let path = result[1]
-        console.log(path)
+        let retPaths = result[1]
+
+
         let cycles = {}
-
-        for(var idx = 0; idx < path.length; ++idx) {
-            if (cycles.hasOwnProperty(idx)) continue;
-            let visited = []
-            let jj = idx;
-            while(!visited.includes(jj)) {
-                visited.push(jj)
-                jj = path[jj]
-                if (jj < 0) break;
-            }
-
-            if (jj > 0 && !cycles.hasOwnProperty(jj)) {
-                visited.push(jj);
-                while(visited[0] !== jj) visited.shift()
-                
-                if (!currIdx.includes(jj)) {
-                    visited.unshift(currIdx[0])
-                    visited.push(currIdx[0])
+        
+        for(var key in retPaths) {
+            var path = retPaths[key];
+            console.log(path);
+        
+            for(var idx = 0; idx < path.length; ++idx) {
+                if (cycles.hasOwnProperty(idx)) continue;
+                let visited = []
+                let jj = idx;
+                while(!visited.includes(jj)) {
+                    visited.push(jj)
+                    jj = path[jj]
+                    if (jj < 0) break;
                 }
 
-                if (visited.length < 6)  cycles[jj] = visited
-            }            
+                if (jj > 0 && !cycles.hasOwnProperty(jj)) {
+                    visited.push(jj);
+                    while(visited[0] !== jj) visited.shift()
+                    
+                    if (!currIdx.includes(jj)) {
+                        visited.unshift(currIdx[0])
+                        visited.push(currIdx[0])
+                    }
+
+                    if (visited.length < 6)  cycles[jj] = visited
+                }            
+            }
         }
 
         for(var cycle in cycles) {

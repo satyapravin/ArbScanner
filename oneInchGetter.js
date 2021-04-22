@@ -22,7 +22,7 @@ class OneInchGetter {
                             complexityLevel: 0,
                             connectorTokens: "",
                         }
-                    }).then((response) => resolve([fromToken, toToken, amount, response.data])).catch (e => {
+                    }).then((response) =>{var retval = response.data.toTokenAmount;resolve([fromToken, toToken, amount, retval])}).catch (e => {
                     console.log(fromToken, toToken, amount);
                     return reject(e);
                 });
@@ -42,7 +42,7 @@ class OneInchGetter {
                             gasPrice: 0,
                             
                         }
-                    }).then((response) => resolve([fromToken, toToken, amount, response.data])).catch (e => {
+                    }).then((response) => resolve([fromToken, toToken, amount, response.data.toTokenAmount])).catch (e => {
                         console.log(fromToken, toToken, amount);
                         return reject(e);
                     });

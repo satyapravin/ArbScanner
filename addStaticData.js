@@ -57,6 +57,11 @@ class StaticDataAdder {
 
         this.addExchange = async function(id, address, nonce) {
             try {
+                if (nonce < 0)
+                {
+                    nonce = await this.web3.eth.getTransactionCount(this.address,  "pending");
+                }
+
                 let receipt = await this.trader.methods.addExchangeWrapper(id, address).send({
                     from: this.address,
                     gas: 500000,
@@ -143,8 +148,7 @@ registerData = async function() {
     nonce = await adder.addExchange(1, "0x1BA0905cDD46EB0f9Dd9Ea62c396deAFcD45055a", nonce);
     nonce = await adder.addExchange(2, "0x1e66763807Ca2B4afD08cd35EC6b70bA68Ee6704", nonce);
     nonce = await adder.addExchange(3, "0x7876dfbD59eBAE9d42645fc0744E42af6A652c32", nonce);
-    nonce = await adder.addExchange(4, "0x23308fAcA48AF3CD4e4Efde257e567d0d3171176", nonce);
-    
+    //nonce = await adder.addExchange(4, "0x23308fAcA48AF3CD4e4Efde257e567d0d3171176", nonce);
 }
 
 registerData();
