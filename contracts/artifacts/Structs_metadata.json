@@ -1,0 +1,37 @@
+{
+	"compiler": {
+		"version": "0.5.17+commit.d19bba13"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"TradingBot.sol": "Structs"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"TradingBot.sol": {
+			"keccak256": "0xd98087dbb501527c41fba9b11aa8a82ddd4ed2a7f80591c00ee1546ff5a5e51a",
+			"urls": [
+				"bzz-raw://7ffc2bc3ce5605e9b95560dc4b58e634471e6b1b42d580f8795653683d1ee96a",
+				"dweb:/ipfs/QmS6X8syLbxk22JwBgpek1ZcRtwiwrmSocPGX9ewFggdaD"
+			]
+		}
+	},
+	"version": 1
+}

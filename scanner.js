@@ -1,8 +1,9 @@
 const bellman = require('./bellman.js')
 const bigNumber = require('./bigNumber.js')
-const getter = require('./ownGetter.js')
+const getter = require('./zrxGetter.js')
 const utils = require('./utils.js')
 const contracts = require('./assets.js')
+const { sleep } = require('./utils.js')
 
 class Scanner {
     constructor(totalCapital) {
@@ -12,7 +13,7 @@ class Scanner {
         this.V = utils.array2D(this.keys.length, 0)
         this.capital = totalCapital
         this.base10 = new bigNumber.BigNumber(10)
-        this.aggregator = new getter.OwnGetter()
+        this.aggregator = new getter.zrxGetter();
     }
 
     async findArbitrage(resultPath, amounts, loanCurrencies) {
@@ -29,7 +30,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(200);
+                    await utils.sleep(400);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -41,7 +42,7 @@ class Scanner {
                     }
                     
                     amounts[from] = amount;
-                    let p = this.aggregator.getExpectedReturn(from, to, amount)
+                    let p = this.aggregator.getExpectedReturnWithGas(from, to, amount);
                     promises.push(p);
                 } else {
                     G[i][j] = 0
@@ -63,9 +64,9 @@ class Scanner {
                 let brate = bigNumber.BigNumber(rate).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(to)));
                 let ret = brate.dividedBy(bigNumber.BigNumber(amount).dividedBy(
                                             this.base10.exponentiatedBy(this.assets.getDecimals(from)))).toNumber()
-                console.log(from, to, 
+                /*console.log(from, to, 
                         bigNumber.BigNumber(amount).dividedBy(
-                                           this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), ret);
+                                           this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), ret);*/
                 
                 G[i][j] = -Math.log(ret);
                 this.V[i][j] = rate
