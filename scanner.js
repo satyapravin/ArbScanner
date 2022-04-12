@@ -103,12 +103,14 @@ class Scanner {
         
         let cyc_cnt = 0
         for(var key in retPaths) {
-            var path = retPaths[key]
+            var path = retPaths[key].reverse()
             cycles[cyc_cnt] = [parseInt(key)]
 
             for(var idx = 0; idx < path.length; ++idx) {
-                //if (cycles[cyc_cnt].includes(path[idx])) continue;
-                cycles[cyc_cnt].push(path[idx])
+                if (path[idx] >= 0) {
+                    if (cycles[cyc_cnt].includes(path[idx])) continue;
+                    cycles[cyc_cnt].push(path[idx])
+                }
             }
             cycles[cyc_cnt].push(parseInt(key))
             cyc_cnt = cyc_cnt + 1

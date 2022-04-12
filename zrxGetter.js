@@ -11,7 +11,7 @@ class zrxGetter {
                             sellToken: fromToken,
                             buyToken: toToken,
                             sellAmount: bigNumber.BigNumber(amount).toString(10),
-                            slippagePercentage: 0.0002
+                            slippagePercentage: 0.0001
                         }
                     }).then((response) => {resolve([fromToken, toToken, amount, response.data.buyAmount]);}).catch (e => {
                         console.log(e)
