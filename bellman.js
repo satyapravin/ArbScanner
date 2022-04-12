@@ -9,7 +9,7 @@ const bellmanFord = function(G, S) {
 		dist = new Array(V).fill(Infinity);
 		dist[S[ll]] = 0;
 	
-		for (var kk=0; kk < V*2; ++kk)
+		for (var kk=0; kk < V+1; ++kk)
 		{
 			if (kk < V - 1)
 				paths = new Array(V).fill(-1);

@@ -65,9 +65,9 @@ class Scanner {
                 let brate = bigNumber.BigNumber(rate).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(to)));
                 let bamount = bigNumber.BigNumber(amount).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(from)))
                 let ret = brate.dividedBy(bamount).toNumber()
-                console.log(from, to, bamount.toNumber(), brate.toFixed());
+                console.log(from, to, bamount.toNumber(), brate.toFixed(), ret);
                 
-                G[i][j] = -Math.log(ret);
+                G[i][j] = -Math.log(ret)
 
                 if (i == 0) {
                     this.V[0][j] = brate
@@ -103,12 +103,12 @@ class Scanner {
         
         let cyc_cnt = 0
         for(var key in retPaths) {
-            var path = retPaths[key].reverse()
+            var path = retPaths[key]
             cycles[cyc_cnt] = [parseInt(key)]
 
             for(var idx = 0; idx < path.length; ++idx) {
                 if (path[idx] >= 0) {
-                    if (cycles[cyc_cnt].includes(path[idx])) continue;
+                    //if (cycles[cyc_cnt].includes(path[idx])) continue;
                     cycles[cyc_cnt].push(path[idx])
                 }
             }
@@ -117,18 +117,18 @@ class Scanner {
         }
 
         for(var cycle in cycles) {
-            let rate = bigNumber.BigNumber(1)
+            let rate = 0
             let symbols = []
             let reversePath = cycles[cycle]
             console.log(reversePath)
             symbols.push(this.keys[reversePath[0]])
 
             for(var i = 1; i < reversePath.length; ++i) {
-                rate = rate.multipliedBy(Math.exp(-G[reversePath[i-1]][reversePath[i]]))
+                rate = rate-G[reversePath[i-1]][reversePath[i]]
                 symbols.push(this.keys[reversePath[i]])
             }
 
-            let profit = (rate.toNumber() - 1) * this.capital
+            let profit = (Math.exp(rate) - 1) * this.capital
             resultPath[profit] = symbols
             console.log(symbols.join("=>"), "capital: ", this.capital, " profit: ", profit);
         }
