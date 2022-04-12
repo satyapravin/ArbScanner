@@ -65,9 +65,7 @@ class Scanner {
                 let brate = bigNumber.BigNumber(rate).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(to)));
                 let ret = brate.dividedBy(bigNumber.BigNumber(amount).dividedBy(
                                             this.base10.exponentiatedBy(this.assets.getDecimals(from)))).toNumber()
-                console.log(from, to, 
-                        bigNumber.BigNumber(amount).dividedBy(
-                                           this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), brate.toFixed());
+                console.log(from, to, ret, brate.toFixed());
                 
                 G[i][j] = -Math.log(ret);
                 this.V[i][j] = brate
@@ -102,11 +100,11 @@ class Scanner {
         
         let cyc_cnt = 0
         for(var key in retPaths) {
-            var path = retPaths[key]
+            var path = retPaths[key].reverse()
             cycles[cyc_cnt] = [parseInt(key)]
 
             for(var idx = 0; idx < path.length; ++idx) {
-                if (cycles[cyc_cnt].includes(path[idx])) continue;
+                //if (cycles[cyc_cnt].includes(path[idx])) continue;
                 cycles[cyc_cnt].push(path[idx])
             }
             cycles[cyc_cnt].push(parseInt(key))
