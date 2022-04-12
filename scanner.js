@@ -21,7 +21,7 @@ class Scanner {
         let G = utils.array2D(this.keys.length, 0);
         if (this.V[0][0] == 0)
         {
-            this.V[0][0] = 100
+            this.V[0][0] = 1
         } else {
             this.V[0][0] = this.capital
         }
@@ -30,14 +30,15 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(400);
+                    await utils.sleep(800);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
                                          this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed()
                     if(i !== 0) {
                         if(this.V[0][i] > 0) {
-                            amount = bigNumber.BigNumber(this.V[0][i]).toFixed()
+                            amount = bigNumber.BigNumber(this.V[0][i]).multipliedBy(
+                                         this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed()
                         }
                     }
                     
@@ -64,12 +65,12 @@ class Scanner {
                 let brate = bigNumber.BigNumber(rate).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(to)));
                 let ret = brate.dividedBy(bigNumber.BigNumber(amount).dividedBy(
                                             this.base10.exponentiatedBy(this.assets.getDecimals(from)))).toNumber()
-                /*console.log(from, to, 
+                console.log(from, to, 
                         bigNumber.BigNumber(amount).dividedBy(
-                                           this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), ret);*/
+                                           this.base10.exponentiatedBy(this.assets.getDecimals(from))).toFixed(), brate.toFixed());
                 
                 G[i][j] = -Math.log(ret);
-                this.V[i][j] = rate
+                this.V[i][j] = brate
             }
             else { 
                 G[i][j] = Infinity
@@ -82,7 +83,7 @@ class Scanner {
         for(var curr in loanCurrencies) {
             currIdx.push(this.keys.indexOf(loanCurrencies[curr]))
         }
-        console.log(currIdx)
+
         let result = bellman.bellmanFord(G, currIdx)
         
         if (!result[0]) 
@@ -90,47 +91,35 @@ class Scanner {
             console.log('Zero arb found');
             return false;
         }
+        else {
+            console.log(result)
+        }
         
         let retPaths = result[1]
 
 
         let cycles = {}
         
+        let cyc_cnt = 0
         for(var key in retPaths) {
-            var path = retPaths[key];
-            console.log(path);
-        
+            var path = retPaths[key]
+            cycles[cyc_cnt] = [parseInt(key)]
+
             for(var idx = 0; idx < path.length; ++idx) {
-                if (cycles.hasOwnProperty(idx)) continue;
-                let visited = []
-                let jj = idx;
-                while(!visited.includes(jj)) {
-                    visited.push(jj)
-                    jj = path[jj]
-                    if (jj < 0) break;
-                }
-
-                if (jj > 0 && !cycles.hasOwnProperty(jj)) {
-                    visited.push(jj);
-                    while(visited[0] !== jj) visited.shift()
-                    
-                    if (!currIdx.includes(jj)) {
-                        visited.unshift(currIdx[0])
-                        visited.push(currIdx[0])
-                    }
-
-                    if (visited.length < 6)  cycles[jj] = visited
-                }            
+                if (cycles[cyc_cnt].includes(path[idx])) continue;
+                cycles[cyc_cnt].push(path[idx])
             }
+            cycles[cyc_cnt].push(parseInt(key))
+            cyc_cnt = cyc_cnt + 1
         }
 
         for(var cycle in cycles) {
             let rate = bigNumber.BigNumber(1)
             let symbols = []
             let reversePath = cycles[cycle]
-            reversePath = reversePath.reverse();
-            symbols.push(this.keys[reversePath[0]])
             console.log(reversePath)
+            symbols.push(this.keys[reversePath[0]])
+
             for(var i = 1; i < reversePath.length; ++i) {
                 rate = rate.multipliedBy(Math.exp(-G[reversePath[i-1]][reversePath[i]]))
                 symbols.push(this.keys[reversePath[i]])

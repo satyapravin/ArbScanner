@@ -10,11 +10,12 @@ class zrxGetter {
                         params: {
                             sellToken: fromToken,
                             buyToken: toToken,
-                            sellAmount: bigNumber.BigNumber(amount).toString(),
+                            sellAmount: bigNumber.BigNumber(amount).toString(10),
+                            slippagePercentage: 0.0002
                         }
                     }).then((response) => {resolve([fromToken, toToken, amount, response.data.buyAmount]);}).catch (e => {
-                    console.log(fromToken, toToken, amount);
-                    return reject(e);
+                        console.log(e)
+                        return reject(e);
                 });
             });
         }

@@ -8,7 +8,8 @@ let checkingMarkets = false
 let finder = new scanner.Scanner(process.argv[2])
 //let trader = new executor.Executor(process.env.RPC_URL, process.env.PRIVATE_KEY)
 //trader.registerEvents();
-let loanCurrencies = ['WBTC']
+let loanCurrencies = ['DAI']
+let amounts = {}
 
 async function checkMarkets() {
 	if(checkingMarkets) {
@@ -20,7 +21,6 @@ async function checkMarkets() {
 	try 
 	{
 		let results = {}
-		let amounts = {}
 		let found = await finder.findArbitrage(results, amounts, loanCurrencies);
 		if (found) {
 			let maxProfit = Object.keys(results).reduce((a, b) => Number(a) > Number(b) ?  a : b);
