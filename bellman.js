@@ -2,39 +2,46 @@ const bellmanFord = function(G, S) {
 	N = 0
 	V = G.length;
 	var retPaths = {}
+	let negativeCyclePresent = false;
 
-	for (var ll=0; ll < S.length; ++ll) 
-	{
-		let negativeCyclePresent = false;
-		dist = new Array(V).fill(Infinity);
-		dist[S[ll]] = 0;
-	
-		for (var kk=0; kk < V+1; ++kk)
-		{
-			if (kk < V - 1)
-				paths = new Array(V).fill(-1);
+	for (var ll=0; ll < S.length; ++ll) {
+		root = S[ll]
 
-			for(var ii=0; ii < V; ++ii)
-			{
-				for(var jj=0; jj < V; ++jj)
-				{
-					if (ii != jj && dist[ii] < Infinity && dist[ii] + G[ii][jj] < dist[jj])
-					{
-						if (kk >= V-1) negativeCyclePresent = true;
-						dist[jj] = dist[ii] + G[ii][jj];
-						paths[jj] = ii;
+		for (var kk=0; kk < V; ++kk) {
+			if (kk !== root) {
+				for (var jj=0; jj < V; ++jj) {
+					if (jj !== root ) {
+						if (kk !== jj) {
+							ret = G[root][jj] + G[jj][kk] + G[kk][root]
+							if (ret < 0) {
+								negativeCyclePresent = true;
+								retPaths[ret] = [root, jj, kk, root]
+							}
+							ret = G[root][kk] + G[kk][jj] + G[jj][root]
+							if (ret < 0) {
+								negativeCyclePresent = true;
+								retPaths[ret] = [root, kk, jj, root]
+							}
+						}
 					}
 				}
-			}	  
-		}
-
-
-		if (negativeCyclePresent) {
-			retPaths[S[ll]] = paths
+			}			
 		}
 	}
 
-  	return [Object.keys(retPaths).length > 0, retPaths];
+	path = []
+	retrate = 0
+	if (negativeCyclePresent) {
+		var sorted = [];
+		for(var key in retPaths) {
+			sorted[sorted.length] = key;
+		}
+		sorted.sort();
+		path = retPaths[sorted[0]]
+		retrate = sorted[0]
+	}
+
+  	return [negativeCyclePresent, path, retrate];
 }
 
 module.exports = {bellmanFord};

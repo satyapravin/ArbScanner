@@ -1,6 +1,7 @@
 const bellman = require('./bellman.js')
 const bigNumber = require('./bigNumber.js')
-const getter = require('./zrxGetter.js')
+//const getter = require('./zrxGetter.js')
+const getter = require('./oneInchGetter.js')
 const utils = require('./utils.js')
 const contracts = require('./assets.js')
 const { sleep } = require('./utils.js')
@@ -13,7 +14,7 @@ class Scanner {
         this.V = utils.array2D(this.keys.length, 0)
         this.capital = totalCapital
         this.base10 = new bigNumber.BigNumber(10)
-        this.aggregator = new getter.zrxGetter();
+        this.aggregator = new getter.OneInchGetter();
     }
 
     async findArbitrage(resultPath, amounts, loanCurrencies) {
@@ -30,7 +31,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(800);
+                    await utils.sleep(300);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -56,8 +57,9 @@ class Scanner {
         data.map((response) => {
             let i = this.keys.indexOf(response.value[0])
             let j = this.keys.indexOf(response.value[1]) 
-            let amount = Number(response.value[2]);
-            let rate = response.value[3];
+            let amount = Number(response.value[2])
+            let rate = Number(response.value[3])
+            let gas = response.value[4]
             let from = this.keys[i];
             let to = this.keys[j];
             
@@ -65,7 +67,7 @@ class Scanner {
                 let brate = bigNumber.BigNumber(rate).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(to)));
                 let bamount = bigNumber.BigNumber(amount).dividedBy(this.base10.exponentiatedBy(this.assets.getDecimals(from)))
                 let ret = brate.dividedBy(bamount).toNumber()
-                console.log(from, to, bamount.toNumber(), brate.toFixed(), ret);
+                console.log(from, to, bamount.toNumber(), brate.toFixed(), gas);
                 
                 G[i][j] = -Math.log(ret)
 
@@ -92,47 +94,19 @@ class Scanner {
             console.log('Zero arb found');
             return false;
         }
-        else {
-            console.log(result)
-        }
         
-        let retPaths = result[1]
+        let cycle = result[1]
+        let rate = result[2]
 
+        let symbols = []
 
-        let cycles = {}
-        
-        let cyc_cnt = 0
-        for(var key in retPaths) {
-            var path = retPaths[key]
-            cycles[cyc_cnt] = [parseInt(key)]
-
-            for(var idx = 0; idx < path.length; ++idx) {
-                if (path[idx] >= 0) {
-                    //if (cycles[cyc_cnt].includes(path[idx])) continue;
-                    cycles[cyc_cnt].push(path[idx])
-                }
-            }
-            cycles[cyc_cnt].push(parseInt(key))
-            cyc_cnt = cyc_cnt + 1
+        for(var i = 0; i < cycle.length; ++i) {
+            symbols.push(this.keys[cycle[i]])
         }
 
-        for(var cycle in cycles) {
-            let rate = 0
-            let symbols = []
-            let reversePath = cycles[cycle]
-            console.log(reversePath)
-            symbols.push(this.keys[reversePath[0]])
-
-            for(var i = 1; i < reversePath.length; ++i) {
-                rate = rate-G[reversePath[i-1]][reversePath[i]]
-                symbols.push(this.keys[reversePath[i]])
-            }
-
-            let profit = (Math.exp(rate) - 1) * this.capital
-            resultPath[profit] = symbols
-            console.log(symbols.join("=>"), "capital: ", this.capital, " profit: ", profit);
-        }
-
+        let profit = (Math.exp(-rate) - 1) * this.capital
+        resultPath[profit] = symbols
+        console.log(symbols.join("=>"), "capital: ", this.capital, " profit: ", profit);
         return true;
     }
 }

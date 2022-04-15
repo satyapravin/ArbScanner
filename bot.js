@@ -8,7 +8,7 @@ let checkingMarkets = false
 let finder = new scanner.Scanner(process.argv[2])
 //let trader = new executor.Executor(process.env.RPC_URL, process.env.PRIVATE_KEY)
 //trader.registerEvents();
-let loanCurrencies = ['USDC']
+let loanCurrencies = ['ETH', 'BTC', 'DAI', 'USDC', 'FTM']
 let amounts = {}
 
 async function checkMarkets() {
@@ -61,5 +61,5 @@ async function checkMarkets() {
 	checkingMarkets = false
 }
 
-const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 10000 
+const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 5000 
 const marketChecker = setInterval(async() => { await checkMarkets() }, POLLING_INTERVAL)
