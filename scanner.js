@@ -68,7 +68,7 @@ class Scanner {
                 let ret = brate.dividedBy(bamount).toNumber()
                 console.log(from, to, bamount.toNumber(), brate.toFixed(), gas);
                 
-                G[i][j] = Math.log(ret)
+                G[i][j] = -Math.log(ret)
 
                 if (i == 0) {
                     this.V[0][j] = brate
