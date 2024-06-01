@@ -1,6 +1,5 @@
 const bellman = require('./bellman.js')
 const bigNumber = require('./bigNumber.js')
-//const getter = require('./zrxGetter.js')
 const getter = require('./oneInchGetter.js')
 const utils = require('./utils.js')
 const contracts = require('./assets.js')
@@ -31,7 +30,7 @@ class Scanner {
         for (var i=0; i < this.keys.length; i++) {
             for (var j=0; j < this.keys.length; j++) {
                 if (j !== i) {
-                    await utils.sleep(300);
+                    await utils.sleep(1200);
                     let from = this.keys[i];
                     let to = this.keys[j];
                     let amount = bigNumber.BigNumber(this.V[0][0]).multipliedBy(
@@ -69,7 +68,7 @@ class Scanner {
                 let ret = brate.dividedBy(bamount).toNumber()
                 console.log(from, to, bamount.toNumber(), brate.toFixed(), gas);
                 
-                G[i][j] = -Math.log(ret)
+                G[i][j] = Math.log(ret)
 
                 if (i == 0) {
                     this.V[0][j] = brate
